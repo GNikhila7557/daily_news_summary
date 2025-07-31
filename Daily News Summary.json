@@ -1,0 +1,217 @@
+{
+  "name": "Daily News Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "fdecb3fc-15db-4d6f-9d21-440c77b0045d",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://newsapi.org/v2/everything?q=technology&language=en&pageSize=5&apiKey=3eda50c35d4145209c9ab333d425f531",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "5063bfee-4bd0-4e69-a9ec-1e3a8e38508d",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const articles = $json[\"articles\"] || [];\nconst titles = articles.map(a => a.title).join(\"\\n\");\nreturn [{ json: { headlines: titles } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        -16
+      ],
+      "id": "c66a8498-e124-43ca-bb43-69a871e7cd0b",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Summarize these news headlines into 3 bullet points with emojis:\n{{$json[\"headlines\"]}}\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        896,
+        -16
+      ],
+      "id": "64a47bdb-a9f8-4a32-a16d-8fc76372e106",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "tRUxvQbl4LAwUZCl",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "nikhilavalli_7557@gmail.com",
+        "subject": "Daily News Summary",
+        "emailType": "text",
+        "message": "=Here is your daily tech news summary: {{ $json.message.content }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1296,
+        -16
+      ],
+      "id": "de6c5445-a053-44f6-950e-6fb09012a2c5",
+      "name": "Send a message",
+      "webhookId": "1c4d7320-b046-4132-9e88-87adf8cb6b56",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "UcdYHAZPgYIbD76n",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d6716356-5aa3-491a-b6a9-5a121621d375",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "ok",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "e1f899c2-a587-46b4-b60c-6804cd85bf3d",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "658c96dd-f6bb-40a1-bc76-be82e65399d7",
+      "name": "If1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c2e6cfa2-0028-44b2-b790-4cd164afd2d0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ee2bef7cdea04dc6e360541ab56fe8f7b993e65bd57556739aaf0ab1fe0dc4fd"
+  },
+  "id": "FRQDG1NyAti43yJG",
+  "tags": []
+}
